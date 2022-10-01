@@ -24,3 +24,5 @@ logs/
 secrets/
 flask_session
 pyvenv.cfg
+include
+pyodbc.pyi

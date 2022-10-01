@@ -10,8 +10,8 @@ from FlaskWebProject import app, db
 from FlaskWebProject.forms import LoginForm, PostForm
 from flask_login import current_user, login_user, logout_user, login_required
 from FlaskWebProject.models import User, Post
-import msal
 import uuid
+from . import auth_utils
 
 imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.net/' + app.config['BLOB_CONTAINER']  + '/'
 
@@ -19,7 +19,7 @@ imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.n
 @app.route('/home')
 @login_required
 def home():
-    user = User.query.filter_by(username=current_user.username).first_or_404()
+    User.query.filter_by(username=current_user.username).first_or_404()
     posts = Post.query.all()
     return render_template(
         'index.html',
@@ -74,7 +74,7 @@ def login():
             next_page = url_for('home')
         return redirect(next_page)
     session["state"] = str(uuid.uuid4())
-    auth_url = _build_auth_url(scopes=Config.SCOPE, state=session["state"])
+    auth_url = auth_utils.build_auth_url(scopes=Config.SCOPE, state=session["state"])
     return render_template('login.html', title='Sign In', form=form, auth_url=auth_url)
 
 @app.route(Config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
@@ -84,7 +84,7 @@ def authorized():
     if "error" in request.args:  # Authentication/Authorization failure
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
-        cache = _load_cache()
+        cache = auth_utils.load_cache()
         # TODO: Acquire a token from a built msal app, along with the appropriate redirect URI
         result = None
         if "error" in result:
@@ -94,7 +94,7 @@ def authorized():
         # Here, we'll use the admin username for anyone who is authenticated by MS
         user = User.query.filter_by(username="admin").first()
         login_user(user)
-        _save_cache(cache)
+        auth_utils.save_cache(cache)
     return redirect(url_for('home'))
 
 @app.route('/logout')
@@ -110,19 +110,3 @@ def logout():
 
     return redirect(url_for('login'))
 
-def _load_cache():
-    # TODO: Load the cache from `msal`, if it exists
-    cache = None
-    return cache
-
-def _save_cache(cache):
-    # TODO: Save the cache, if it has changed
-    pass
-
-def _build_msal_app(cache=None, authority=None):
-    # TODO: Return a ConfidentialClientApplication
-    return None
-
-def _build_auth_url(authority=None, scopes=None, state=None):
-    # TODO: Return the full Auth Request URL with appropriate Redirect URI
-    return None
