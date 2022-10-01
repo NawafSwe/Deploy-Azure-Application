@@ -33,7 +33,7 @@ def build_auth_url(authority=None, scopes=None, state=None):
     ).get_authorization_request_url(
         scopes=scopes,
         state=state or str(uuid.uuid4()),
-        redirect_uri=f"http://{Config.SERVER_HOST}:{Config.SERVER_PORT}" + Config.REDIRECT_PATH,
+        redirect_uri=f"https://{Config.SERVER_HOST}:{Config.SERVER_PORT}" + Config.REDIRECT_PATH,
     )
 
 
@@ -44,5 +44,5 @@ def acquire_token_by_authorization_code(code, scopes, cache=None, redirect_uri=N
     ).acquire_token_by_authorization_code(
         code=code,
         scopes=scopes,
-        redirect_uri="http://localhost:6700" + Config.REDIRECT_PATH,
+        redirect_uri=f"https://{Config.SERVER_HOST}:{Config.SERVER_PORT}" + Config.REDIRECT_PATH,
     )
